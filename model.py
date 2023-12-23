@@ -1,0 +1,95 @@
+# common dependencies
+from typing import Union
+import argparse
+import json
+import os
+import time
+from datetime import datetime
+
+# 3rd party dependencies
+import numpy as np
+import matplotlib.pyplot as plt
+from deepface.DeepFace import find
+
+class Model():
+    def __init__(self,
+            db_path : str = "database",
+            model_name : str = "ArcFace",
+            threshold : float = 0.4,
+            distance_metric : str = "cosine",
+            enforce_detection : bool = True,
+            detector_backend : str = "retinaface",
+            align : bool = True,
+            normalization : str = "base",
+            silent : bool = False,
+    ):
+        self.db_path = db_path
+        self.model_name = model_name
+        self.threshold = threshold
+        self.distance_metric = distance_metric
+        self.enforce_detection = enforce_detection
+        self.detector_backend = detector_backend
+        self.align = align
+        self.normalization = normalization
+        self.silent = silent
+
+
+    def run(self, img_path : Union[str, np.ndarray]) -> list[str]:
+        print(self.db_path)
+        dfs = find(img_path, self.db_path, self.model_name, self.distance_metric, self.enforce_detection, self.detector_backend, self.align, self.normalization, self.silent)
+
+        results = []
+
+        if len(dfs) == 0:
+            print("Can not recognize the face(s)...")
+        else:
+            print("Recognized successfully...")
+            for df, source_region in dfs:
+                info = {
+                    "x":source_region["x"],
+                    "y":source_region["y"],
+                    "w":source_region["w"],
+                    "h":source_region["h"],
+                    "found": False
+                }
+                if df.empty or df.iloc[0][-1] > self.threshold: # Empty result or distance > threshold
+                    print("\nThis person is not found in database...")
+                    results.append(str(info))
+                    continue
+
+                print("\nFound...")
+
+                info["found"] = True
+                path = df.iloc[0]["identity"]
+                origin_path = os.path.dirname(path)
+
+                print(path)
+                
+                about = None
+                
+                try:
+                    with open(f"{origin_path}/about.json", 'r') as f:
+                        about = json.loads(f.read())
+                except:
+                   print("Database does not have his/her information")
+                
+                if about is not None:
+                    info.update(about)
+
+                results.append(str(info))
+        
+        return results
+
+def parse_opt():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--img_path', type=str, required=True, help='Enter image to recognize')
+    opt = parser.parse_args()
+    return opt
+
+def main(opt):
+    model = Model()
+    model.run(opt.img_path)
+
+if __name__ == '__main__':
+    opt = parse_opt()
+    main(opt)
