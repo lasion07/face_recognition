@@ -2,6 +2,8 @@
 **/.DS_Store
 build/
 dist/
+database/
+draft/
 Pipfile
 Pipfile.lock
 .mypy_cache/

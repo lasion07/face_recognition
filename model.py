@@ -34,8 +34,7 @@ class Model():
         self.silent = silent
 
 
-    def run(self, img_path : Union[str, np.ndarray]) -> list[str]:
-        print(self.db_path)
+    def find(self, img_path : Union[str, np.ndarray]) -> list[str]:
         dfs = find(img_path, self.db_path, self.model_name, self.distance_metric, self.enforce_detection, self.detector_backend, self.align, self.normalization, self.silent)
 
         results = []
@@ -52,18 +51,20 @@ class Model():
                     "h":source_region["h"],
                     "found": False
                 }
+
                 if df.empty or df.iloc[0][-1] > self.threshold: # Empty result or distance > threshold
                     print("\nThis person is not found in database...")
-                    results.append(str(info))
+                    results.append(info)
                     continue
 
                 print("\nFound...")
+                print(df.iloc[0][-1])
 
                 info["found"] = True
                 path = df.iloc[0]["identity"]
                 origin_path = os.path.dirname(path)
 
-                print(path)
+                # print(path)
                 
                 about = None
                 
@@ -76,7 +77,7 @@ class Model():
                 if about is not None:
                     info.update(about)
 
-                results.append(str(info))
+                results.append(info)
         
         return results
 
