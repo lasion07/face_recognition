@@ -3,13 +3,12 @@ from typing import Union
 import argparse
 import json
 import os
-import time
-from datetime import datetime
 
 # 3rd party dependencies
 import numpy as np
-import matplotlib.pyplot as plt
 from deepface.DeepFace import find
+from deepface.commons.functions import load_image 
+from deepface.detectors import FaceDetector
 
 class Model():
     def __init__(self,
@@ -32,7 +31,6 @@ class Model():
         self.align = align
         self.normalization = normalization
         self.silent = silent
-
 
     def find(self, img_path : Union[str, np.ndarray]) -> list[str]:
         dfs = find(img_path, self.db_path, self.model_name, self.distance_metric, self.enforce_detection, self.detector_backend, self.align, self.normalization, self.silent)
@@ -80,6 +78,12 @@ class Model():
                 results.append(info)
         
         return results
+    
+    def detect_faces(self, img):
+        # img, img_name = load_image(img)
+        face_detector = FaceDetector.build_model(self.detector_backend)
+        face_objs = FaceDetector.detect_faces(face_detector, self.detector_backend, img, self.align)
+        return face_objs
 
 def parse_opt():
     parser = argparse.ArgumentParser()

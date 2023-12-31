@@ -9,3 +9,6 @@ def read_image_from_bytes(file):
 
 def xywh_to_xyxy(x, y, w, h):
     return x, y, x + w, y + h
+
+def save_image(filename, image):
+    cv2.imwrite(filename, image)

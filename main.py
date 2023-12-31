@@ -11,26 +11,6 @@ def find_in_database(image, distance_metric, max_distance, align):
     results = model.find(image)
     return results
 
-def show_information(json_file):
-    """
-        {
-            "No.": "2",
-            "Full name": "Roseanne Park",
-            "Date of birth": "11/02/1997",
-            "Sex": "Female",
-            "Nationality": "Korean, New Zealand, South Korean",
-            "Place of origin": "Auckland, New Zealand",
-            "Place of residence": ""
-        }
-    """
-    st.info(f'**No.**: {json_file["No."]}')
-    st.info(f'**Full name**: {json_file["Full name"]}')
-    st.info(f'**Date of birth**: {json_file["Date of birth"]}')
-    st.info(f'**Sex**: {json_file["Sex"]}')
-    st.info(f'**Nationality**: {json_file["Nationality"]}')
-    st.info(f'**Place of origin**: {json_file["Place of origin"]}')
-    st.info(f'**Place of residence**: {json_file["Place of residence"]}')
-
 if __name__ == "__main__":
     st.sidebar.title("Nhận dạng bằng khuôn mặt")
     st.sidebar.markdown("Đồ án chuyên ngành - Nhóm 16")
