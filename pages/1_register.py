@@ -5,7 +5,7 @@ import datetime
 import streamlit as st
 
 from model import Model
-from utils.commons import read_image_from_bytes, xywh_to_xyxy, save_image
+from utils.commons import read_image_from_bytes, save_image
 
 
 st.set_page_config(page_title="Đăng ký", page_icon="🇻🇳")
@@ -100,6 +100,7 @@ def register_information(images):
             # Save infomarion
             with open(f'{folder_path}/about.json', mode='w', encoding='utf-8') as f:
                 json.dump(information, f, ensure_ascii=False, indent=4)
+            os.unlink(f'{db_path}/representations_arcface.pkl')
             st.success("Thông tin nhân dạng đã được đăng ký thành công!")
 
     if st.session_state["submitted"] and st.session_state["update"]:
@@ -118,7 +119,6 @@ def register_information(images):
             except Exception as e:
                 print('Failed to delete %s. Reason: %s' % (file_path, e))
         # Cập nhật thông tin mới
-        print(folder_name_exist[2:])
         id_number = int(folder_name_exist[2:]) #IDxx
         for i in range(len(images)):
             image = images[i]
@@ -126,6 +126,7 @@ def register_information(images):
         # Save infomarion
         with open(f'{db_path}/{folder_name_exist}/about.json', mode='w', encoding='utf-8') as f:
             json.dump(information, f, ensure_ascii=False, indent=4)
+        os.unlink(f'{db_path}/representations_arcface.pkl')
         st.success("Cập nhật thông tin thành công!")
     
     if st.session_state["submitted"] and st.session_state["cancel"]:
@@ -153,7 +154,7 @@ def filter_uploaded_images(uploaded_files):
 if __name__ == '__main__':
     st.sidebar.title("Nhận dạng bằng khuôn mặt")
     st.sidebar.markdown("Đồ án chuyên ngành - Nhóm 16")
-    
+
     st.title("Đăng ký thông tin nhân dạng")
 
     st.header("Tải ảnh lên")

@@ -3,11 +3,11 @@ import streamlit as st
 from model import Model
 from utils.commons import read_image_from_bytes, xywh_to_xyxy
 
-st.set_page_config(page_title="Tìm kiếm", page_icon="🔍")
+st.set_page_config(page_title="Nhận dạng khuôn mặt", page_icon="🇻🇳")
 
 @st.cache_data # Disable for Debugging
-def find_in_database(image, distance_metric, max_distance, align):
-    model = Model(threshold=max_distance, distance_metric=distance_metric, align=align)
+def find_in_database(image, distance_metric, max_distance):
+    model = Model(threshold=max_distance, distance_metric=distance_metric)
     results = model.find(image)
     return results
 
@@ -31,11 +31,9 @@ if __name__ == "__main__":
         # Settings
         distance_metric = 'cosine'
         max_distance = 0.4
-        align = True
 
         if st.checkbox('Show advanced settings'):
             st.header("Settings")
-            align = st.checkbox('Align face', value=True)
             distance_metric = st.selectbox(
                 'Distance metric',
                 ('cosine', 'euclidean', 'euclidean_l2'))
@@ -44,7 +42,7 @@ if __name__ == "__main__":
         show_json = st.checkbox('Show json output')
 
         if st.button("Find"):
-            results = find_in_database(input_image, distance_metric, max_distance, align)
+            results = find_in_database(input_image, distance_metric, max_distance)
 
             st.header("Result")
 
