@@ -17,34 +17,34 @@ if __name__ == "__main__":
     
     st.title("Tìm kiếm thông tin bằng khuôn mặt")
         
-    uploaded_file = st.file_uploader("Choose an image")
+    uploaded_file = st.file_uploader("Chọn một ảnh", type=['png', 'jpg'])
     if uploaded_file is None:
-        uploaded_file = st.camera_input("Or take a photo")
+        uploaded_file = st.camera_input("Hoặc chụp ảnh")
 
     if uploaded_file is not None:
         bytes_data = uploaded_file.getvalue()
         input_image = read_image_from_bytes(bytes_data)
         
-        st.header("Input image")
+        st.header("Ảnh đầu vào")
         st.image(bytes_data, use_column_width=True, channels="BGR")
 
         # Settings
         distance_metric = 'cosine'
         max_distance = 0.4
 
-        if st.checkbox('Show advanced settings'):
-            st.header("Settings")
+        if st.checkbox('Hiển thị cài đặt nâng cao'):
+            st.header("Cài đặt")
             distance_metric = st.selectbox(
-                'Distance metric',
+                'Phép đo khoảng cách',
                 ('cosine', 'euclidean', 'euclidean_l2'))
-            max_distance = st.slider("Max distance", min_value=0.1, max_value=2.0, value=0.4, step=0.1)
+            max_distance = st.slider("Khoảng cách tối đa", min_value=0.1, max_value=2.0, value=0.4, step=0.1)
 
-        show_json = st.checkbox('Show json output')
+        show_json = st.checkbox('Hiển thị đầu ra dạng json')
 
-        if st.button("Find"):
+        if st.button("Tìm kiếm", type="primary", use_container_width=True):
             results = find_in_database(input_image, distance_metric, max_distance)
 
-            st.header("Result")
+            st.header("Kết quả")
 
             if show_json:
                 st.json(results)
@@ -61,16 +61,19 @@ if __name__ == "__main__":
                     st.image(input_image[y1:y2, x1:x2], use_column_width=True, channels="BGR")
                 
                 with col2:
-                    if result["found"]:                    
-                        st.info(f'**No.**: {result["No."]}')
-                        st.info(f'**Full name**: {result["Full name"]}')
-                        st.info(f'**Date of birth**: {result["Date of birth"]}')
-                        st.info(f'**Sex**: {result["Sex"]}')
-                        st.info(f'**Nationality**: {result["Nationality"]}')
-                        st.info(f'**Place of origin**: {result["Place of origin"]}')
-                        st.info(f'**Place of residence**: {result["Place of residence"]}')
-                        # Another case when there is a lack of the about of this person
+                    if result["found"]:
+                        try:
+                            st.info(f'**No.**: {result["No."]}')
+                            st.info(f'**Full name**: {result["Full name"]}')
+                            st.info(f'**Date of birth**: {result["Date of birth"]}')
+                            st.info(f'**Sex**: {result["Sex"]}')
+                            st.info(f'**Nationality**: {result["Nationality"]}')
+                            st.info(f'**Place of origin**: {result["Place of origin"]}')
+                            st.info(f'**Place of residence**: {result["Place of residence"]}')
+                        except:
+                            st.error("Dữ liệu thông tin của người này bị thiếu")
+                            # Another case when there is a lack of the about of this person
                     else:
-                        st.error("This person is not found in database...")
+                        st.error("Không tìm thấy thông tin người này...")
             
-            st.header("This is the end of the result...")
+            st.header("Kết thúc kết quả nhận dạng...")

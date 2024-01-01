@@ -40,14 +40,14 @@ class Model():
         if len(dfs) == 0:
             print("Can not recognize the face(s)...")
         else:
-            print("Recognized successfully...")
             for df, source_region in dfs:
                 info = {
                     "x":source_region["x"],
                     "y":source_region["y"],
                     "w":source_region["w"],
                     "h":source_region["h"],
-                    "found": False
+                    "found": False,
+                    "have_infomation": False
                 }
 
                 if df.empty or df.iloc[0][-1] > self.threshold: # Empty result or distance > threshold
@@ -61,16 +61,11 @@ class Model():
                 info["found"] = True
                 path = df.iloc[0]["identity"]
                 origin_path = os.path.dirname(path)
-
-                # print(path)
                 
                 about = None
                 
-                try:
-                    with open(f"{origin_path}/about.json", 'r') as f:
-                        about = json.loads(f.read())
-                except:
-                   print("Database does not have his/her information")
+                with open(f"{origin_path}/about.json", 'r') as f:
+                    about = json.loads(f.read())
                 
                 if about is not None:
                     info.update(about)

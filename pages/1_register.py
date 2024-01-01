@@ -81,8 +81,8 @@ def register_information(images):
             # Cho phép cập nhật thông tin hoặc không
             st.warning("Thông tin đã tồn tại trong cơ sở dữ liệu! Bạn có muốn cập nhật không?")
             # Hiển thị nút "Cập Nhật" và "Không"
-            st.button("Cập nhật", key="update")
-            st.button("Huỷ bỏ", key="cancel")  
+            st.button("Cập nhật", key="update", use_container_width=True)
+            st.button("Huỷ bỏ", key="cancel", use_container_width=True)  
         else:
             # Đăng ký thông tin
             folder_count = 0
@@ -100,7 +100,8 @@ def register_information(images):
             # Save infomarion
             with open(f'{folder_path}/about.json', mode='w', encoding='utf-8') as f:
                 json.dump(information, f, ensure_ascii=False, indent=4)
-            os.unlink(f'{db_path}/representations_arcface.pkl')
+            if os.path.exists(f'{db_path}/representations_arcface.pkl'):
+                os.unlink(f'{db_path}/representations_arcface.pkl')
             st.success("Thông tin nhân dạng đã được đăng ký thành công!")
 
     if st.session_state["submitted"] and st.session_state["update"]:
@@ -126,7 +127,8 @@ def register_information(images):
         # Save infomarion
         with open(f'{db_path}/{folder_name_exist}/about.json', mode='w', encoding='utf-8') as f:
             json.dump(information, f, ensure_ascii=False, indent=4)
-        os.unlink(f'{db_path}/representations_arcface.pkl')
+        if os.path.exists(f'{db_path}/representations_arcface.pkl'):
+            os.unlink(f'{db_path}/representations_arcface.pkl')
         st.success("Cập nhật thông tin thành công!")
     
     if st.session_state["submitted"] and st.session_state["cancel"]:
