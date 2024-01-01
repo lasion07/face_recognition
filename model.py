@@ -3,10 +3,12 @@ from typing import Union
 import argparse
 import json
 import os
+from tqdm import tqdm
 
 # 3rd party dependencies
 import numpy as np
-from deepface.DeepFace import find
+from deepface.DeepFace import find, represent
+from deepface.commons import functions
 from deepface.commons.functions import load_image 
 from deepface.detectors import FaceDetector
 
@@ -79,6 +81,51 @@ class Model():
         face_detector = FaceDetector.build_model(self.detector_backend)
         face_objs = FaceDetector.detect_faces(face_detector, self.detector_backend, img, self.align)
         return face_objs
+
+    def represent(self, imgs, imgs_paths):
+        representations = []
+
+        target_size = functions.find_target_size(model_name=self.model_name)
+
+        # for employee in employees:
+        pbar = tqdm(
+            range(0, len(imgs)),
+            desc="Finding representations",
+        )
+        for index in pbar:
+            img = imgs[index]
+
+            img_objs = functions.extract_faces(
+                img=img,
+                target_size=target_size,
+                detector_backend=self.detector_backend,
+                grayscale=False,
+                enforce_detection=self.enforce_detection,
+                align=self.align,
+            )
+
+            for img_content, img_region, _ in img_objs:
+                embedding_obj = represent(
+                    img_path=img_content,
+                    model_name=self.model_name,
+                    enforce_detection=self.enforce_detection,
+                    detector_backend="skip",
+                    align=self.align,
+                    normalization=self.normalization,
+                )
+
+                img_representation = embedding_obj[0]["embedding"]
+
+                instance = []
+                instance.append(imgs_paths[index])
+                instance.append(img_representation)
+                instance.append(img_region["x"])
+                instance.append(img_region["y"])
+                instance.append(img_region["w"])
+                instance.append(img_region["h"])
+                representations.append(instance)
+
+        return representations
 
 def parse_opt():
     parser = argparse.ArgumentParser()

@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+from pickle import dump, load
 
 import streamlit as st
 
@@ -42,6 +43,20 @@ def check_info_exist(db_path, no) -> (bool, str):
                     break
     return info_exist, folder_name_exist
 
+def save_to_database(folder_path, id_number, images, information):
+    # Save images
+    for i in range(len(images)):
+        image = images[i]
+        save_image(f'{folder_path}/ID{id_number}_{i}.jpg', image)
+    # Save infomarion
+    with open(f'{folder_path}/about.json', mode='w', encoding='utf-8') as f:
+        json.dump(information, f, ensure_ascii=False, indent=4)
+
+def represent(images, images_paths):
+    model = Model()
+    representations = model.represent(images, images_paths)
+    return representations
+
 def register_information(images):
     with st.form("registration_form"):
         st.markdown(":red[**Lưu ý:**] Yêu cầu nhập đầy đủ thông tin")
@@ -71,9 +86,9 @@ def register_information(images):
             st.error("Vui lòng điền đầy đủ thông tin!")
             st.stop()
         
+        db_path = 'database'
         st.session_state["submitted"] = True
         # Kiểm tra xem mã định danh đã tồn tại trong cơ sở dữ liệu chưa
-        db_path = 'database'
         info_exist, folder_path_exist = check_info_exist(db_path, no)
 
         if info_exist:
@@ -93,15 +108,23 @@ def register_information(images):
             folder_path = f'{db_path}/ID{id_number}'
             # Create folder
             os.mkdir(folder_path)
-            # Save images
-            for i in range(len(images)):
-                image = images[i]
-                save_image(f'{folder_path}/ID{id_number}_{i}.jpg', image)
-            # Save infomarion
-            with open(f'{folder_path}/about.json', mode='w', encoding='utf-8') as f:
-                json.dump(information, f, ensure_ascii=False, indent=4)
-            if os.path.exists(f'{db_path}/representations_arcface.pkl'):
-                os.unlink(f'{db_path}/representations_arcface.pkl')
+            save_to_database(folder_path, id_number, images, information)
+            # Update saved representations
+            saved_representations_path = f'{db_path}/representations_arcface.pkl'
+            if os.path.exists(saved_representations_path):
+                # with open()
+                # os.unlink(f'{db_path}/representations_arcface.pkl')
+                with open(saved_representations_path, "rb") as f:
+                    saved_representations = load(f)
+                    images_paths = []
+                    for i in range(len(images)):
+                        images_paths.append(f'{folder_path}/ID{id_number}_{i}.jpg')
+                    representations = represent(images, images_paths)
+                    saved_representations.extend(representations)
+                    st.write(saved_representations)
+                    with open(saved_representations_path, "wb") as f:
+                        dump(saved_representations, f)
+
             st.success("Thông tin nhân dạng đã được đăng ký thành công!")
 
     if st.session_state["submitted"] and st.session_state["update"]:
@@ -110,23 +133,17 @@ def register_information(images):
 
         db_path = 'database'
         folder_name_exist = st.session_state["folder_name_exist"]
+        folder_path = os.path.join(db_path, folder_name_exist)
+        id_number = int(folder_name_exist[2:]) #IDxx
         
         # Xoá thông tin cũ
-        for filename in os.listdir(os.path.join(db_path, folder_name_exist)):
-            file_path = os.path.join(folder_name_exist, filename)
-            try:
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    os.unlink(file_path)
-            except Exception as e:
-                print('Failed to delete %s. Reason: %s' % (file_path, e))
+        for filename in os.listdir(os.path.join(folder_path)):
+            file_path = os.path.join(folder_path, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
         # Cập nhật thông tin mới
-        id_number = int(folder_name_exist[2:]) #IDxx
-        for i in range(len(images)):
-            image = images[i]
-            save_image(f'{folder_name_exist}/ID{id_number}_{i}.jpg', image)
-        # Save infomarion
-        with open(f'{db_path}/{folder_name_exist}/about.json', mode='w', encoding='utf-8') as f:
-            json.dump(information, f, ensure_ascii=False, indent=4)
+        save_to_database(folder_path, id_number, images, information)
+        # Remove saved representations
         if os.path.exists(f'{db_path}/representations_arcface.pkl'):
             os.unlink(f'{db_path}/representations_arcface.pkl')
         st.success("Cập nhật thông tin thành công!")
